@@ -1,0 +1,2 @@
+# perfvars
+MusicBrainz Picard plugin
