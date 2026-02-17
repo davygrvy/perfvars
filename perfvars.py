@@ -21,6 +21,7 @@ def add_album_performance_metadata(metadata, release_mbid):
     # events take precidence in the heirarchy followed by place then area.
     if 'event-relation-list' in release:
         processEventRelations(release['event-relation-list'], metadata, count)
+        metadata["~release_performance_count"] = count.val()-1
         return
     
     release_group = musicbrainzngs.get_release_group_by_id(release['release-group']['id'],
@@ -30,26 +31,31 @@ def add_album_performance_metadata(metadata, release_mbid):
     # we do this second as release events take precidence
     if 'event-relation-list' in release_group:
         processEventRelations(release_group['event-relation-list'], metadata, count)
+        metadata["~release_performance_count"] = count.val()-1
         return
     
     # any place relations?
     if 'place-relation-list' in release:
         processPlaceRelations(release['place-relation-list'], metadata, count)
+        metadata["~release_performance_count"] = count.val()-1
         return
     
     # any place relations on the release-group?
     if 'place-relation-list' in release_group:
         processPlaceRelations(release_group['place-relation-list'], metadata, count)
+        metadata["~release_performance_count"] = count.val()-1
         return
     
     # any area relations?
     if 'area-relation-list' in release:
         processAreaRelations(release['area-relation-list'], metadata, count)
+        metadata["~release_performance_count"] = count.val()-1
         return
     
     # any area relations on the release-group?
     if 'area-relation-list' in release_group:
         processAreaRelations(release_group['area-relation-list'], metadata, count)
+        metadata["~release_performance_count"] = count.val()-1
         return
     
     return
@@ -59,12 +65,15 @@ def processEventRelations(event_relation_list, metadata, count):
     for relation in event_relation_list:
         if relation['type-id'] == '4dda6e40-14af-46bb-bb78-ea22f4a99dfa':
             # 'recorded at' for an event https://musicbrainz.org/relationship/4dda6e40-14af-46bb-bb78-ea22f4a99dfa
-            metadata[f"~release_event{count.val()}_name"] = relation['event']['name']
+            metadata[f"~release_performance{count.val()}_name"] = relation['event']['name']
             if relation['event']['life-span']['begin'] == relation['event']['life-span']['end']:
-                metadata[f"~release_event{count.val()}_date"] = relation['event']['life-span']['begin']
+                metadata[f"~release_performance{count.val()}_date"] = relation['event']['life-span']['begin']
             else:
-                metadata[f"~release_event{count.val()}_date"] = f"{relation['event']['life-span']['begin']} - {relation['event']['life-span']['end']}"
+                metadata[f"~release_performance{count.val()}_date"] = f"{relation['event']['life-span']['begin']} - {relation['event']['life-span']['end']}"
             
+            if 'time' in relation['event']:
+                metadata[f"~release_performance{count.val()}_time"] = relation['event']['time']
+                
             # get event
             event = musicbrainzngs.get_event_by_id(relation['event']['id'],
                     includes=['place-rels','area-rels'])['event']
@@ -137,13 +146,13 @@ def unwindArea(mbid):
     # town, county, municipality, state (subdivision), country
     area = musicbrainzngs.get_area_by_id(mbid, includes=["area-rels"])['area']
     if 'area-relation-list' in area:
-       for relation in area['area-relation-list']:
-          if relation['direction'] == 'backward' and relation['type-id'] == 'de7cc874-8b1b-3a05-8272-f3834c968fb7':
+       for area_rel in area['area-relation-list']:
+          if area_rel['direction'] == 'backward' and area_rel['type-id'] == 'de7cc874-8b1b-3a05-8272-f3834c968fb7':
               # skip County or Municipality
-             if area['type'] == ('County' or 'Municipality'):
-                return unwindArea(relation['area']['id'])
+             if area['type'] == 'County' or area['type'] == 'Municipality':
+                return unwindArea(area_rel['area']['id'])
              else:
-                return [area['name'], ", ".join(unwindArea(relation['area']['id']))]
+                return [area['name'], ", ".join(unwindArea(area_rel['area']['id']))]
     
     # when no backward relation exists, we are at the top and done
     return [area['iso-3166-1-code-list'][0]]
