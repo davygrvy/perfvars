@@ -62,15 +62,15 @@ def add_album_performance_metadata(metadata, release_mbid):
 
 def processEventRelations(event_relation_list, metadata, count):
     for event_rel in event_relation_list:
-        if event_rel['type-id'] == '4dda6e40-14af-46bb-bb78-ea22f4a99dfa' or
-                event_rel['type-id'] == 'a64a9085-505b-4588-bff9-214d7dda61c4':
+        if event_rel['type-id'] in ['4dda6e40-14af-46bb-bb78-ea22f4a99dfa','a64a9085-505b-4588-bff9-214d7dda61c4']:
             # 'recorded at' on a release https://musicbrainz.org/relationship/4dda6e40-14af-46bb-bb78-ea22f4a99dfa
             # 'performed at' on a release-group https://musicbrainz.org/relationship/a64a9085-505b-4588-bff9-214d7dda61c4
             metadata[f"~release_performance{count.val()}_name"] = event_rel['event']['name']
             if event_rel['event']['life-span']['begin'] == event_rel['event']['life-span']['end']:
                 metadata[f"~release_performance{count.val()}_date"] = event_rel['event']['life-span']['begin']
             else:
-                metadata[f"~release_performance{count.val()}_date"] = f"{event_rel['event']['life-span']['begin']} - {event_rel['event']['life-span']['end']}"
+                metadata[f"~release_performance{count.val()}_date"] = (
+                        f"{event_rel['event']['life-span']['begin']} - {event_rel['event']['life-span']['end']}")
             
             if 'time' in event_rel['event']:
                 metadata[f"~release_performance{count.val()}_time"] = event_rel['event']['time']
@@ -93,15 +93,16 @@ def processPlaceRelations(place_relation_list, metadata, count):
             # 'held at' on an event https://musicbrainz.org/relationship/e2c6f697-07dc-38b1-be0b-83d740165532
             if 'target-credit' in place_rel:
                 metadata[f"~release_performance{count.val()}_location"] = place_rel['target-credit']
-                metadata[f"~release_performance{count.val()}_location_unwound"] = ", ".join([place_rel['target-credit'], unwindPlace(place_rel['place']['id'])[1]])
+                metadata[f"~release_performance{count.val()}_location_unwound"] = (
+                        ", ".join([place_rel['target-credit'], unwindPlace(place_rel['place']['id'])[1]]))
             else:
                 metadata[f"~release_performance{count.val()}_location"] = place_rel['place']['name']
-                metadata[f"~release_performance{count.val()}_location_unwound"] = ", ".join(unwindPlace(place_rel['place']['id']))
+                metadata[f"~release_performance{count.val()}_location_unwound"] = (
+                        ", ".join(unwindPlace(place_rel['place']['id'])))
             count.incr()
             continue
         
-        if place_rel['type-id'] == '3b1fae9f-5b22-42c5-a40c-d1e5c9b90251' or
-                place_rel['type-id'] == 'a64a9085-505b-4588-bff9-214d7dda61c4':
+        if place_rel['type-id'] in ['3b1fae9f-5b22-42c5-a40c-d1e5c9b90251','a64a9085-505b-4588-bff9-214d7dda61c4']:
             # 'recorded at' on a release https://musicbrainz.org/relationship/3b1fae9f-5b22-42c5-a40c-d1e5c9b90251
             # 'recorded at' on a release-group https://musicbrainz.org/relationship/a64a9085-505b-4588-bff9-214d7dda61c4
             if place_rel['begin'] == place_rel['end']:
@@ -113,14 +114,14 @@ def processPlaceRelations(place_relation_list, metadata, count):
                 metadata[f"~release_performance{count.val()}_location_unwound"] = ", ".join([place_rel['target-credit'], unwindPlace(place_rel['place']['id'])[1]])
             else:
                 metadata[f"~release_performance{count.val()}_location"] = place_rel['place']['name']
-                metadata[f"~release_performance{count.val()}_location_unwound"] = ", ".join(unwindPlace(place_rel['place']['id']))
+                metadata[f"~release_performance{count.val()}_location_unwound"] = (
+                        ", ".join(unwindPlace(place_rel['place']['id'])))
             count.incr()
 
 
 def processAreaRelations(area_relation_list, metadata, count):
     for area_rel in area_relation_list:
-        if area_rel['type-id'] == '354043e1-bdc2-4c7f-b338-2bf9c1d56e88' or
-                area_rel['type-id'] == '542f8484-8bc7-3ce5-a022-747850b2b928':
+        if area_rel['type-id'] in ['354043e1-bdc2-4c7f-b338-2bf9c1d56e88','542f8484-8bc7-3ce5-a022-747850b2b928']:
             # 'recorded in' on a release https://musicbrainz.org/relationship/354043e1-bdc2-4c7f-b338-2bf9c1d56e88
             # 'held in' on an event https://musicbrainz.org/relationship/542f8484-8bc7-3ce5-a022-747850b2b928
             if area_rel['begin'] == area_rel['end']:
@@ -129,10 +130,12 @@ def processAreaRelations(area_relation_list, metadata, count):
                 metadata[f"~release_performance{count.val()}_date"] = f"{area_rel['begin']} - {area_rel['end']}"
             if 'target-credit' in area_rel:
                 metadata[f"~release_performance{count.val()}_location"] = area_rel['target-credit']
-                metadata[f"~release_performance{count.val()}_location_unwound"] = ", ".join([area_rel['target-credit'], unwindArea(area_rel['area']['id'])[1]])
+                metadata[f"~release_performance{count.val()}_location_unwound"] = (
+                        ", ".join([area_rel['target-credit'], unwindArea(area_rel['area']['id'])[1]]))
             else:
                 metadata[f"~release_performance{count.val()}_location"] = place_rel['area']['name']
-                metadata[f"~release_performance{count.val()}_location_unwound"] = ", ".join(unwindArea(area_rel['area']['id']))
+                metadata[f"~release_performance{count.val()}_location_unwound"] = (
+                        ", ".join(unwindArea(area_rel['area']['id'])))
             count.incr()
 
 
@@ -154,8 +157,10 @@ def unwindArea(mbid):
        for area_rel in area['area-relation-list']:
           if area_rel['direction'] == 'backward' and area_rel['type-id'] == 'de7cc874-8b1b-3a05-8272-f3834c968fb7':
               # skip County or Municipality
-             if area['type'] == 'County' or area['type'] == 'Municipality':
+             if area['type'] in ['County','Municipality']:
                 return unwindArea(area_rel['area']['id'])
+             elif area['type'] == 'Subdivision':
+                return [area['iso-3166-2-code-list'][0], ", ".join(unwindArea(area_rel['area']['id']))]
              else:
                 return [area['name'], ", ".join(unwindArea(area_rel['area']['id']))]
     
