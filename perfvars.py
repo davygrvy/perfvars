@@ -111,7 +111,8 @@ def processPlaceRelations(place_relation_list, metadata, count):
                 metadata[f"~release_performance{count.val()}_date"] = f"{place_rel['begin']} - {place_rel['end']}"
             if 'target-credit' in place_rel:
                 metadata[f"~release_performance{count.val()}_location"] = place_rel['target-credit']
-                metadata[f"~release_performance{count.val()}_location_unwound"] = ", ".join([place_rel['target-credit'], unwindPlace(place_rel['place']['id'])[1]])
+                metadata[f"~release_performance{count.val()}_location_unwound"] = (
+                        ", ".join([place_rel['target-credit'], unwindPlace(place_rel['place']['id'])[1]]))
             else:
                 metadata[f"~release_performance{count.val()}_location"] = place_rel['place']['name']
                 metadata[f"~release_performance{count.val()}_location_unwound"] = (
@@ -156,10 +157,11 @@ def unwindArea(mbid):
     if 'area-relation-list' in area:
        for area_rel in area['area-relation-list']:
           if area_rel['direction'] == 'backward' and area_rel['type-id'] == 'de7cc874-8b1b-3a05-8272-f3834c968fb7':
-              # skip County or Municipality
              if area['type'] in ['County','Municipality']:
+                # skip County or Municipality
                 return unwindArea(area_rel['area']['id'])
              elif area['type'] == 'Subdivision':
+                # use abreviation for subdivision
                 return [area['iso-3166-2-code-list'][0], ", ".join(unwindArea(area_rel['area']['id']))]
              else:
                 return [area['name'], ", ".join(unwindArea(area_rel['area']['id']))]
