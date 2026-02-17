@@ -17,65 +17,65 @@ def add_album_performance_metadata(metadata, release_mbid):
             includes=['release-groups','event-rels','place-rels','area-rels'])['release']
     
     count = Count()
+    just_once = 1
     
-    # events take precidence in the heirarchy followed by place then area.
-    if 'event-relation-list' in release:
-        processEventRelations(release['event-relation-list'], metadata, count)
-        metadata["~release_performance_count"] = count.val()-1
-        return
+    while(just_once):
+        just_once = 0
+        
+        # events take precidence in the heirarchy followed by place then area.
+        if 'event-relation-list' in release:
+            processEventRelations(release['event-relation-list'], metadata, count)
+            break
+        
+        release_group = musicbrainzngs.get_release_group_by_id(release['release-group']['id'],
+                includes=['event-rels','place-rels','area-rels'])['release-group']
     
-    release_group = musicbrainzngs.get_release_group_by_id(release['release-group']['id'],
-            includes=['event-rels','place-rels','area-rels'])['release-group']
+        # check if there is an event relationships on the release-group
+        # we do this second as release events take precidence
+        if 'event-relation-list' in release_group:
+            processEventRelations(release_group['event-relation-list'], metadata, count)
+            break
+        
+        # any place relations?
+        if 'place-relation-list' in release:
+            processPlaceRelations(release['place-relation-list'], metadata, count)
+            break
+        
+        # any place relations on the release-group?
+        if 'place-relation-list' in release_group:
+            processPlaceRelations(release_group['place-relation-list'], metadata, count)
+            break
+        
+        # any area relations?
+        if 'area-relation-list' in release:
+            processAreaRelations(release['area-relation-list'], metadata, count)
+            break
     
-    # check if there is an event relationships on the release-group
-    # we do this second as release events take precidence
-    if 'event-relation-list' in release_group:
-        processEventRelations(release_group['event-relation-list'], metadata, count)
-        metadata["~release_performance_count"] = count.val()-1
-        return
+        # any area relations on the release-group?
+        if 'area-relation-list' in release_group:
+            processAreaRelations(release_group['area-relation-list'], metadata, count)
+            break
     
-    # any place relations?
-    if 'place-relation-list' in release:
-        processPlaceRelations(release['place-relation-list'], metadata, count)
-        metadata["~release_performance_count"] = count.val()-1
-        return
-    
-    # any place relations on the release-group?
-    if 'place-relation-list' in release_group:
-        processPlaceRelations(release_group['place-relation-list'], metadata, count)
-        metadata["~release_performance_count"] = count.val()-1
-        return
-    
-    # any area relations?
-    if 'area-relation-list' in release:
-        processAreaRelations(release['area-relation-list'], metadata, count)
-        metadata["~release_performance_count"] = count.val()-1
-        return
-    
-    # any area relations on the release-group?
-    if 'area-relation-list' in release_group:
-        processAreaRelations(release_group['area-relation-list'], metadata, count)
-        metadata["~release_performance_count"] = count.val()-1
-        return
-    
+    metadata["~release_performance_count"] = count.val()-1
     return
 
 
 def processEventRelations(event_relation_list, metadata, count):
-    for relation in event_relation_list:
-        if relation['type-id'] == '4dda6e40-14af-46bb-bb78-ea22f4a99dfa':
-            # 'recorded at' for an event https://musicbrainz.org/relationship/4dda6e40-14af-46bb-bb78-ea22f4a99dfa
-            metadata[f"~release_performance{count.val()}_name"] = relation['event']['name']
-            if relation['event']['life-span']['begin'] == relation['event']['life-span']['end']:
-                metadata[f"~release_performance{count.val()}_date"] = relation['event']['life-span']['begin']
+    for event_rel in event_relation_list:
+        if event_rel['type-id'] == '4dda6e40-14af-46bb-bb78-ea22f4a99dfa' or event_rel['type-id'] == 'a64a9085-505b-4588-bff9-214d7dda61c4':
+            # 'recorded at' on a release https://musicbrainz.org/relationship/4dda6e40-14af-46bb-bb78-ea22f4a99dfa
+            # 'performed of' on a release-group https://musicbrainz.org/relationship/a64a9085-505b-4588-bff9-214d7dda61c4
+            metadata[f"~release_performance{count.val()}_name"] = event_rel['event']['name']
+            if event_rel['event']['life-span']['begin'] == event_rel['event']['life-span']['end']:
+                metadata[f"~release_performance{count.val()}_date"] = event_rel['event']['life-span']['begin']
             else:
-                metadata[f"~release_performance{count.val()}_date"] = f"{relation['event']['life-span']['begin']} - {relation['event']['life-span']['end']}"
+                metadata[f"~release_performance{count.val()}_date"] = f"{event_rel['event']['life-span']['begin']} - {event_rel['event']['life-span']['end']}"
             
-            if 'time' in relation['event']:
-                metadata[f"~release_performance{count.val()}_time"] = relation['event']['time']
+            if 'time' in event_rel['event']:
+                metadata[f"~release_performance{count.val()}_time"] = event_rel['event']['time']
                 
-            # get event
-            event = musicbrainzngs.get_event_by_id(relation['event']['id'],
+            # get event for a deeper look
+            event = musicbrainzngs.get_event_by_id(event_rel['event']['id'],
                     includes=['place-rels','area-rels'])['event']
             
             if 'place-relation-list' in event:
@@ -134,9 +134,9 @@ def processAreaRelations(area_relation_list, metadata, count):
 def unwindPlace(mbid):
     place = musicbrainzngs.get_place_by_id(mbid, includes=['place-rels','area-rels'])['place']
     if 'place-relation-list' in place:
-        for relation in place['place-relation-list']:
-            if relation['direction'] == 'backward' and relation['type-id'] == 'ff683f48-eff1-40ab-a58f-b128098ffe92':
-                return [place['name'], ", ".join(unwindPlace(relation['place']['id']))]
+        for place_rel in place['place-relation-list']:
+            if place_rel['direction'] == 'backward' and place_rel['type-id'] == 'ff683f48-eff1-40ab-a58f-b128098ffe92':
+                return [place['name'], ", ".join(unwindPlace(place_rel['place']['id']))]
     
     # when no backward relation exists, we are at the top, unwind area next                
     return [place['name'], ", ".join(unwindArea(place['area']['id']))]
