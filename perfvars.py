@@ -4,11 +4,11 @@ musicbrainzngs.set_rate_limit(0.5, 2)
 
 class Count:
   def __init__(self):
-   a = 1
-  def incr()
-   a += 1
-  def val()
-   return a
+   self.a = 1
+  def incr(self):
+   self.a += 1
+  def val(self):
+   return self.a
 
 
 def add_album_performance_metadata(metadata, release_mbid):
@@ -16,7 +16,7 @@ def add_album_performance_metadata(metadata, release_mbid):
     release = musicbrainzngs.get_release_by_id(release_mbid,
             includes=['release-groups','event-rels','place-rels','area-rels'])['release']
     
-    Count count()
+    count = Count()
     
     # events take precidence in the heirarchy followed by place then area.
     if 'event-relation-list' in release:
@@ -58,7 +58,7 @@ def add_album_performance_metadata(metadata, release_mbid):
 def processEventRelations(event_relation_list, metadata, count):
     for relation in event_relation_list:
         if relation['type-id'] == '4dda6e40-14af-46bb-bb78-ea22f4a99dfa':
-            # 'recorded at' for an event
+            # 'recorded at' for an event https://musicbrainz.org/relationship/4dda6e40-14af-46bb-bb78-ea22f4a99dfa
             metadata[f"~release_event{count.val()}_name"] = relation['event']['name']
             if relation['event']['life-span']['begin'] == relation['event']['life-span']['end']:
                 metadata[f"~release_event{count.val()}_date"] = relation['event']['life-span']['begin']
@@ -71,12 +71,27 @@ def processEventRelations(event_relation_list, metadata, count):
             
             if 'place-relation-list' in event:
                 processPlaceRelations(event['place-relation-list'], metadata, count)
+            
+            # not likely, but not illegal
+            if 'area-relation-list' in event:
+                processAreaRelations(event['area-relation-list'], metadata, count)
 
 
 def processPlaceRelations(place_relation_list, metadata, count):
     for place_rel in place_relation_list:
-        if place_rel['type-id'] == '3b1fae9f-5b22-42c5-a40c-d1e5c9b90251':
-            # 'recorded at' for a place
+        if place_rel['type-id'] == 'e2c6f697-07dc-38b1-be0b-83d740165532':
+            # 'held at' on an event https://musicbrainz.org/relationship/e2c6f697-07dc-38b1-be0b-83d740165532
+            if 'target-credit' in place_rel:
+                metadata[f"~release_performance{count.val()}_location"] = place_rel['target-credit']
+                metadata[f"~release_performance{count.val()}_location_unwound"] = ", ".join([place_rel['target-credit'], unwindPlace(place_rel['place']['id'])[1]])
+            else:
+                metadata[f"~release_performance{count.val()}_location"] = place_rel['place']['name']
+                metadata[f"~release_performance{count.val()}_location_unwound"] = ", ".join(unwindPlace(place_rel['place']['id']))
+            count.incr()
+        
+        if place_rel['type-id'] == ('3b1fae9f-5b22-42c5-a40c-d1e5c9b90251' or 'a64a9085-505b-4588-bff9-214d7dda61c4'):
+            # 'recorded at' on a release https://musicbrainz.org/relationship/3b1fae9f-5b22-42c5-a40c-d1e5c9b90251
+            # 'recorded at' on a release-group https://musicbrainz.org/relationship/a64a9085-505b-4588-bff9-214d7dda61c4
             if place_rel['begin'] == place_rel['end']:
                 metadata[f"~release_performance{count.val()}_date"] = place_rel['begin']
             else:
@@ -92,8 +107,8 @@ def processPlaceRelations(place_relation_list, metadata, count):
 
 def processAreaRelations(area_relation_list, metadata, count):
     for area_rel in area_relation_list:
-        if area_rel['type-id'] == '':
-            # 'recorded in' for an area
+        if area_rel['type-id'] == '354043e1-bdc2-4c7f-b338-2bf9c1d56e88':
+            # 'recorded in' for an area https://musicbrainz.org/relationship/354043e1-bdc2-4c7f-b338-2bf9c1d56e88
             if area_rel['begin'] == area_rel['end']:
                 metadata[f"~release_performance{count.val()}_date"] = area_rel['begin']
             else:
@@ -103,7 +118,7 @@ def processAreaRelations(area_relation_list, metadata, count):
                 metadata[f"~release_performance{count.val()}_location_unwound"] = ", ".join([area_rel['target-credit'], unwindArea(area_rel['area']['id'])[1]])
             else:
                 metadata[f"~release_performance{count.val()}_location"] = place_rel['area']['name']
-                metadata[f"~release_performance{count.val()}_location_unwound"] = ", ".join(unwindPlace(area_rel['area']['id']))
+                metadata[f"~release_performance{count.val()}_location_unwound"] = ", ".join(unwindArea(area_rel['area']['id']))
             count.incr()
 
 
