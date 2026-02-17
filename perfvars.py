@@ -62,9 +62,10 @@ def add_album_performance_metadata(metadata, release_mbid):
 
 def processEventRelations(event_relation_list, metadata, count):
     for event_rel in event_relation_list:
-        if event_rel['type-id'] == '4dda6e40-14af-46bb-bb78-ea22f4a99dfa' or event_rel['type-id'] == 'a64a9085-505b-4588-bff9-214d7dda61c4':
+        if event_rel['type-id'] == '4dda6e40-14af-46bb-bb78-ea22f4a99dfa' or
+                event_rel['type-id'] == 'a64a9085-505b-4588-bff9-214d7dda61c4':
             # 'recorded at' on a release https://musicbrainz.org/relationship/4dda6e40-14af-46bb-bb78-ea22f4a99dfa
-            # 'performed of' on a release-group https://musicbrainz.org/relationship/a64a9085-505b-4588-bff9-214d7dda61c4
+            # 'performed at' on a release-group https://musicbrainz.org/relationship/a64a9085-505b-4588-bff9-214d7dda61c4
             metadata[f"~release_performance{count.val()}_name"] = event_rel['event']['name']
             if event_rel['event']['life-span']['begin'] == event_rel['event']['life-span']['end']:
                 metadata[f"~release_performance{count.val()}_date"] = event_rel['event']['life-span']['begin']
@@ -74,14 +75,14 @@ def processEventRelations(event_relation_list, metadata, count):
             if 'time' in event_rel['event']:
                 metadata[f"~release_performance{count.val()}_time"] = event_rel['event']['time']
                 
-            # get event for a deeper look
+            # now get the event for a deeper look
             event = musicbrainzngs.get_event_by_id(event_rel['event']['id'],
                     includes=['place-rels','area-rels'])['event']
             
             if 'place-relation-list' in event:
                 processPlaceRelations(event['place-relation-list'], metadata, count)
             
-            # not likely, but not illegal
+            # not likely 
             if 'area-relation-list' in event:
                 processAreaRelations(event['area-relation-list'], metadata, count)
 
@@ -97,8 +98,10 @@ def processPlaceRelations(place_relation_list, metadata, count):
                 metadata[f"~release_performance{count.val()}_location"] = place_rel['place']['name']
                 metadata[f"~release_performance{count.val()}_location_unwound"] = ", ".join(unwindPlace(place_rel['place']['id']))
             count.incr()
+            continue
         
-        if place_rel['type-id'] == ('3b1fae9f-5b22-42c5-a40c-d1e5c9b90251' or 'a64a9085-505b-4588-bff9-214d7dda61c4'):
+        if place_rel['type-id'] == '3b1fae9f-5b22-42c5-a40c-d1e5c9b90251' or
+                place_rel['type-id'] == 'a64a9085-505b-4588-bff9-214d7dda61c4':
             # 'recorded at' on a release https://musicbrainz.org/relationship/3b1fae9f-5b22-42c5-a40c-d1e5c9b90251
             # 'recorded at' on a release-group https://musicbrainz.org/relationship/a64a9085-505b-4588-bff9-214d7dda61c4
             if place_rel['begin'] == place_rel['end']:
@@ -116,8 +119,10 @@ def processPlaceRelations(place_relation_list, metadata, count):
 
 def processAreaRelations(area_relation_list, metadata, count):
     for area_rel in area_relation_list:
-        if area_rel['type-id'] == '354043e1-bdc2-4c7f-b338-2bf9c1d56e88':
-            # 'recorded in' for an area https://musicbrainz.org/relationship/354043e1-bdc2-4c7f-b338-2bf9c1d56e88
+        if area_rel['type-id'] == '354043e1-bdc2-4c7f-b338-2bf9c1d56e88' or
+                area_rel['type-id'] == '542f8484-8bc7-3ce5-a022-747850b2b928':
+            # 'recorded in' on a release https://musicbrainz.org/relationship/354043e1-bdc2-4c7f-b338-2bf9c1d56e88
+            # 'held in' on an event https://musicbrainz.org/relationship/542f8484-8bc7-3ce5-a022-747850b2b928
             if area_rel['begin'] == area_rel['end']:
                 metadata[f"~release_performance{count.val()}_date"] = area_rel['begin']
             else:
