@@ -152,17 +152,22 @@ def unwindPlace(mbid):
 
 
 def unwindArea(mbid):
-    # town, county, municipality, state (subdivision), country
+    # town/city, district, county, municipality, subdivision (state), country
     area = musicbrainzngs.get_area_by_id(mbid, includes=["area-rels"])['area']
     if 'area-relation-list' in area:
        for area_rel in area['area-relation-list']:
-          if area_rel['direction'] == 'backward' and area_rel['type-id'] == 'de7cc874-8b1b-3a05-8272-f3834c968fb7':
+          if (area_rel['direction'] == 'backward' and 
+                  area_rel['type-id'] == 'de7cc874-8b1b-3a05-8272-f3834c968fb7' and
+                  area_rel['area']['type'] != 'Island'):
              if area['type'] in ['County','Municipality']:
                 # skip County or Municipality
                 return unwindArea(area_rel['area']['id'])
              elif area['type'] == 'Subdivision':
-                # use abreviation for subdivision
-                return [area['iso-3166-2-code-list'][0], ", ".join(unwindArea(area_rel['area']['id']))]
+                # use abreviation for Subdivision, if exist
+                if 'iso-3166-2-code-list' in area:
+                    return [area['iso-3166-2-code-list'][0], ", ".join(unwindArea(area_rel['area']['id']))]
+                else:
+                    return [area['name'], ", ".join(unwindArea(area_rel['area']['id']))]
              else:
                 return [area['name'], ", ".join(unwindArea(area_rel['area']['id']))]
     
