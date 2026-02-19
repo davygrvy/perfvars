@@ -12,7 +12,6 @@ area_cache = dict()
 
 def clear_cache ():
     global release_group_cache,release_cache,event_cache,place_cache,area_cache
-    del release_group_cache,release_cache,event_cache,place_cache,area_cache
     
     release_group_cache = dict()
     release_cache = dict()
