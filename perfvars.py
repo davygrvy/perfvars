@@ -87,6 +87,14 @@ def processEventRelations(event_relation_list, metadata, count):
             if 'disambiguation' in event:
                 metadata[f"~release_performance{count.val()}_disambig"] = event['disambiguation']
             
+            if 'url-relation-list' in event:
+                for url_rel in event['url-relation-list']:
+                    if url_rel['type-id'] == 'c26808b0-4e67-31a7-a587-913720dfb3f3':
+                        # 'official homepages' on an event https://musicbrainz.org/relationship/c26808b0-4e67-31a7-a587-913720dfb3f3
+                        metadata[f"~release_performance{count.val()}_homepage"] = url_rel['target']
+                        # only the first
+                        break
+            
             if 'place-relation-list' in event:
                 processPlaceRelations(event['place-relation-list'], metadata, count)
             
