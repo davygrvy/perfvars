@@ -1,4 +1,8 @@
-from perfvars.cache import (get_release_group,get_release,get_event,get_place,get_area)
+from cache import (
+    get_release_group,
+    get_release,
+    get_event,
+    get_place,get_area)
 
 class Count:
   def __init__(self):
