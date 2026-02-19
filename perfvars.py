@@ -61,10 +61,14 @@ def add_album_performance_metadata(metadata, release_mbid):
 
 def processEventRelations(event_relation_list, metadata, count):
     for event_rel in event_relation_list:
-        if event_rel['type-id'] in ['4dda6e40-14af-46bb-bb78-ea22f4a99dfa','a64a9085-505b-4588-bff9-214d7dda61c4']:
+        if event_rel['type-id'] in [
+                '4dda6e40-14af-46bb-bb78-ea22f4a99dfa',
+                'a64a9085-505b-4588-bff9-214d7dda61c4']:
             # 'recorded at' on a release https://musicbrainz.org/relationship/4dda6e40-14af-46bb-bb78-ea22f4a99dfa
             # 'performed at' on a release-group https://musicbrainz.org/relationship/a64a9085-505b-4588-bff9-214d7dda61c4
+            
             metadata[f"~release_performance{count.val()}_name"] = event_rel['event']['name']
+            
             if event_rel['event']['life-span']['begin'] == event_rel['event']['life-span']['end']:
                 metadata[f"~release_performance{count.val()}_date"] = event_rel['event']['life-span']['begin']
             else:
@@ -76,6 +80,12 @@ def processEventRelations(event_relation_list, metadata, count):
                 
             # now get the event for a deeper look
             event = get_event(event_rel['event']['id'])
+            
+            if 'annotation' in event:
+                metadata[f"~release_performance{count.val()}_annotation"] = event['annotation']['text']
+            
+            if 'disambiguation' in event:
+                metadata[f"~release_performance{count.val()}_disambig"] = event['disambiguation']
             
             if 'place-relation-list' in event:
                 processPlaceRelations(event['place-relation-list'], metadata, count)
