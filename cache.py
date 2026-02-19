@@ -33,7 +33,7 @@ def get_event (mbid):
         return event_cache[mbid]
     else:
         event = musicbrainzngs.get_event_by_id(mbid,
-                includes=['place-rels','area-rels'])['event']
+                includes=['annotation','place-rels','area-rels'])['event']
         event_cache[mbid] = event
         return event
 
