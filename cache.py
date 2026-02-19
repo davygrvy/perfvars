@@ -1,5 +1,5 @@
-# TODO: use musicbrainznsg for now, but redo for tagger.webservice
-import musicbrainznsg
+# TODO: use musicbrainzngs for now, but redo for tagger.webservice
+import musicbrainzngs
 musicbrainzngs.set_useragent("perfvars plugin dev", "0.1", "davygrvy@pobox.com")
 musicbrainzngs.set_rate_limit(0.5, 2)
 
@@ -43,7 +43,7 @@ def get_place (mbid):
     else:
         place = musicbrainzngs.get_place_by_id(mbid,
                 includes=['place-rels','area-rels'])['place']
-        event_cache[mbid] = event
+        event_cache[mbid] = place
         return place
 
 def get_area (mbid):
