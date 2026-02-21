@@ -22,14 +22,14 @@ class PluginCachingWebService(MBAPIHelper):
     
     def get_release(self,mbid):
         # if pending condition.wait
-        #    if not error return self.release_group_cache[mbid]
+        #    if not error return self.release_cache[mbid]
         # else
         #    set pending
-        #    self._get_by_id('release-group',mbid,on_complete,'inc=release-groups+event-rels+place-rels+area-rels')
+        #    self._get_by_id('release',mbid,on_complete,'inc=release-groups+event-rels+place-rels+area-rels')
         #    
         # def on_complete(response, reply, error):
         #    if not error
-        #       self.release_group_cache[mbid] = JSON_MB_Parse(response)
+        #       self.release_cache[mbid] = JSON_MB_Parse(response)
         #       unset pending
         #       condition.set ?
        pass
