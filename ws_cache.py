@@ -30,7 +30,7 @@ class PluginCachingWebService(MBAPIHelper):
         #    
         # def on_complete(response, reply, error):
         #    if not error
-        #       self.release_cache[mbid] = _JSON_MB_Parse(response)
+        #       self.release_cache[mbid] = _JSON_MB_Parse(response)['release']
         #       unset pending
         #       condition.set ?
         pass
