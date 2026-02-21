@@ -49,5 +49,6 @@ class PluginCachingWebService(MBAPIHelper):
     def get_area(self,mbid):
        pass
 
+# to be set from the register_album_metadata_processor callback
 ourWS = PluginCachingWebService(album.tagger.webservice)
 event = ourWS.get_event(mbid)
