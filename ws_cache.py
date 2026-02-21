@@ -1,3 +1,4 @@
+import json
 from picard.webservice.api_helpers import MBAPIHelper
 
 class PluginCachingWebService(MBAPIHelper):
@@ -50,7 +51,7 @@ class PluginCachingWebService(MBAPIHelper):
         pass
 
     def _JSON_MB_Parse(rawtext):
-        return []
+        return json.loads(rawtext)
 
 # to be set from the register_album_metadata_processor callback
 ourWS = PluginCachingWebService(album.tagger.webservice)
