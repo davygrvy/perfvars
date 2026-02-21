@@ -3,22 +3,22 @@ from picard.webservice.api_helpers import MBAPIHelper
 class PluginCachingWebService(MBAPIHelper):
     
     def __init__ (self, webservice):
-       super().__init__(webservice)
-       self.release_group_cache = dict()
-       self.release_cache = dict()
-       self.recording_cache = dict()
-       self.event_cache = dict()
-       self.place_cache = dict()
-       self.area_cache = dict()
+        super().__init__(webservice)
+        self.release_group_cache = dict()
+        self.release_cache = dict()
+        self.recording_cache = dict()
+        self.event_cache = dict()
+        self.place_cache = dict()
+        self.area_cache = dict()
     
     def clear_cache(self):
-       del self.release_group_cache,self.release_cache,self.recording,self.event_cache,self.place_cache,self.area_cache
-       self.release_group_cache = dict()
-       self.release_cache = dict()
-       self.recording_cache = dict()
-       self.event_cache = dict()
-       self.place_cache = dict()
-       self.area_cache = dict()
+        del self.release_group_cache,self.release_cache,self.recording,self.event_cache,self.place_cache,self.area_cache
+        self.release_group_cache = dict()
+        self.release_cache = dict()
+        self.recording_cache = dict()
+        self.event_cache = dict()
+        self.place_cache = dict()
+        self.area_cache = dict()
     
     def get_release(self,mbid):
         # if pending condition.wait
@@ -29,25 +29,28 @@ class PluginCachingWebService(MBAPIHelper):
         #    
         # def on_complete(response, reply, error):
         #    if not error
-        #       self.release_cache[mbid] = JSON_MB_Parse(response)
+        #       self.release_cache[mbid] = _JSON_MB_Parse(response)
         #       unset pending
         #       condition.set ?
-       pass
+        pass
     
     def get_release_group(self,mbid):
-       pass
+        pass
     
     def get_recording(self,mbid):
-       pass
+        pass
     
     def get_event(self,mbid):
-       pass
+        pass
     
     def get_place(self,mbid):
-       pass
+        pass
     
     def get_area(self,mbid):
-       pass
+        pass
+
+    def _JSON_MB_Parse(rawtext):
+        return []
 
 # to be set from the register_album_metadata_processor callback
 ourWS = PluginCachingWebService(album.tagger.webservice)
