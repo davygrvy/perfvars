@@ -1,6 +1,6 @@
-from picard.webservice.api_helpers import APIHelper
+from picard.webservice.api_helpers import MBAPIHelper
 
-class PluginCachingWebService(APIHelper):
+class PluginCachingWebService(MBAPIHelper):
     
     def __init__ (self, webservice):
        super().__init__(webservice)
@@ -25,11 +25,11 @@ class PluginCachingWebService(APIHelper):
         #    if not error return self.release_group_cache[mbid]
         # else
         #    set pending
-        #    ws.get_release_group_by_id(...,on_complete,...)
+        #    self._get_by_id('release-group',mbid,on_complete,'inc=release-groups+event-rels+place-rels+area-rels')
         #    
         # def on_complete(response, reply, error):
         #    if not error
-        #       self.release_group_cache[mbid] = response['release_group']
+        #       self.release_group_cache[mbid] = JSON_MB_Parse(response)
         #       unset pending
         #       condition.set ?
        pass
